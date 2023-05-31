@@ -24,6 +24,7 @@ export class UserResolver {
                    @Arg('address') address: string,
                    @Arg('phone') phone: string) {
 
+
     const user = await this.userRepository.create({
       name,
       age,
@@ -32,5 +33,28 @@ export class UserResolver {
     });
 
     return this.userRepository.save(user);
+  }
+
+  @Mutation((returns) => User)
+  async updateUser(
+    @Arg('id') id: number,
+    @Arg('name') name: string,
+    @Arg('age') age: number,
+    @Arg('address') address: string,
+    @Arg('phone') phone: string) {
+
+    const result = await this.userRepository.update(id, {
+      name:name,
+      age:age,
+      address:address,
+      phone:phone,
+    })
+
+    if(result){
+      return this.userRepository.findOneBy({id})
+    }else{
+      console.log('에러발생')
+    }
+
   }
 }
