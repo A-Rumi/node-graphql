@@ -1,52 +1,24 @@
+import 'reflect-metadata'
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-import { AppDataSource } from '../orm.config';
+import { buildSchema } from 'type-graphql';
+import { UserResolver } from './resolver/user.resolver';
+import { AppDataSource } from './config/orm-config';
 
-const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
-  },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
-  },
-];
-
-const typeDefs = `#graphql
-# Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
-# This "Book" type defines the queryable fields for every book in our data source.
-type Book {
-    title: String
-    author: String
-}
-
-# The "Query" type is special: it lists all of the available queries that
-# clients can execute, along with the return type for each. In this
-# case, the "books" query returns an array of zero or more Books (defined above).
-type Query {
-    books: [Book]
-}
-`;
-
-const resolvers = {
-  Query: {
-    books: () => books,
-  },
-};
-
-
+const createSchema = () =>
+  buildSchema({
+    resolvers: [UserResolver],
+  });
 
 const startServer = async () => {
+  const schema = await createSchema();
 
   AppDataSource.initialize()
     .then(() => console.log('typeorm ready'))
-    .catch((e) => console.log('typeorm error', e));
+    .catch((e:Error) => console.log('typeorm error', e));
 
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+    schema,
   });
 
   const {url} = await startStandaloneServer(server, {
